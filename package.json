@@ -1,15 +1,22 @@
 {
   "name": "sirb-js",
   "version": "1.0.0",
+  "private": true,
   "description": "",
-  "main": "index.js",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "license-check": "node scripts/check-licenses.mjs",
+    "test:scripts": "node --test scripts/license-policy.test.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "private": true,
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
     "eslint": "^10.12.0",
