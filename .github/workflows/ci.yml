@@ -1,7 +1,8 @@
 # CI for sirb-js: commit and PR stages of the SRS 12 DevSecOps pipeline
 # (gitleaks + lint, OSV-Scanner, license check, build and tests).
 # Every action is pinned by full commit SHA; Dependabot (github-actions ecosystem) bumps them.
-# Third-party CLIs are downloaded from GitHub releases and verified against a pinned SHA-256.
+# Third-party CLIs (gitleaks, osv-scanner) are downloaded from GitHub releases and verified
+# against a pinned SHA-256. Dependabot does NOT see those: bump version + checksum by hand.
 name: CI
 
 on:
@@ -12,9 +13,10 @@ on:
 # Nothing by default; each job asks for the minimum it needs.
 permissions: {}
 
+# PRs share one group per PR number, so a new push cancels the superseded run. Pushes to
+# main get a group per commit SHA, so no main run is ever cancelled or dropped while pending.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  # Cancel superseded PR runs; let every push to main finish.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
@@ -68,6 +70,7 @@ jobs:
     env:
       # gitleaks-action needs a paid GITLEAKS_LICENSE for organisations, so we run the
       # MIT-licensed CLI directly. SHA-256 is from gitleaks_8.30.1_checksums.txt.
+      # Keep in sync with the gitleaks rev in .pre-commit-config.yaml.
       GITLEAKS_VERSION: 8.30.1
       GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
     steps:
@@ -140,8 +143,12 @@ jobs:
           node-version: 24
           cache: pnpm
 
+      # Only node_modules metadata is needed here, so no lifecycle scripts run.
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Check root scripts formatting
+        run: pnpm run format:scripts
 
       - name: Test license policy
         run: pnpm run test:scripts

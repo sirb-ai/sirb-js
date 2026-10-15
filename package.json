@@ -12,7 +12,8 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "license-check": "node scripts/check-licenses.mjs",
-    "test:scripts": "node --test scripts/license-policy.test.mjs"
+    "test:scripts": "node --test scripts/license-policy.test.mjs",
+    "format:scripts": "prettier --check scripts"
   },
   "keywords": [],
   "author": "",

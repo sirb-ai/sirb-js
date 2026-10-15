@@ -84,3 +84,57 @@ test("checkReport flags violations and honours exact name@version allowlist entr
     ["c@3.0.0"],
   );
 });
+
+test("an allowlist entry never silences GPL/AGPL", () => {
+  const report = {
+    "GPL-3.0": [{ name: "evil", versions: ["1.0.0"], license: "GPL-3.0" }],
+    "AGPL-3.0-only": [
+      { name: "worse", versions: ["2.0.0"], license: "AGPL-3.0-only" },
+    ],
+  };
+  const allowlist = [
+    { name: "evil", version: "1.0.0", reason: "x" },
+    { name: "worse", version: "2.0.0", reason: "x" },
+  ];
+  const { violations, exceptionsUsed } = checkReport(report, allowlist);
+  assert.deepEqual(
+    violations.map((v) => `${v.verdict}:${v.key}:${v.allowlisted}`).sort(),
+    ["deny:evil@1.0.0:true", "deny:worse@2.0.0:true"],
+  );
+  assert.deepEqual(exceptionsUsed, []);
+});
+
+test("network copyleft and non-commercial licenses are denied", () => {
+  for (const id of ["SSPL-1.0", "CC-BY-NC-4.0", "CC-BY-NC-SA-4.0"]) {
+    assert.equal(classifyExpression(id), "deny", id);
+  }
+});
+
+test("licenses not on the permissive list fail closed to review", () => {
+  for (const id of [
+    "EUPL-1.2",
+    "OSL-3.0",
+    "RPL-1.5",
+    "CPAL-1.0",
+    "CC-BY-ND-4.0",
+    "CC-BY-SA-4.0",
+    "LicenseRef-Custom",
+  ]) {
+    assert.equal(classifyExpression(id), "review", id);
+  }
+});
+
+test("free-text and malformed license strings", () => {
+  assert.equal(classifyExpression("GNU GPL v3"), "deny");
+  assert.equal(classifyExpression("GNU General Public License v3"), "deny");
+  assert.equal(classifyExpression("GNU Affero GPL"), "deny");
+  assert.equal(
+    classifyExpression("GNU Lesser General Public License v2.1"),
+    "review",
+  );
+  assert.equal(classifyExpression("MIT OR"), "review");
+  assert.equal(classifyExpression("OR MIT"), "review");
+  assert.equal(classifyExpression("(MIT"), "review");
+  assert.equal(classifyExpression("MIT WITH"), "review");
+  assert.equal(classifyExpression("MIT OR GPL-3.0-only extra"), "deny");
+});

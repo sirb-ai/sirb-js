@@ -2,6 +2,10 @@
 // Fails when any installed dependency (production or development) is GPL/AGPL, or is
 // LGPL/unknown without an explicit entry in scripts/license-allowlist.json.
 // Policy and rationale: scripts/license-policy.mjs.
+//
+// Known limitation: `pnpm licenses list` only sees packages installed for the current
+// platform, so optional platform-specific binaries for other OSes/CPUs (e.g.
+// lightningcss-darwin-arm64 when CI runs on linux-x64) are not checked.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { checkReport } from "./license-policy.mjs";
@@ -31,10 +35,16 @@ for (const e of exceptionsUsed) {
 }
 if (violations.length > 0) {
   console.error(`License policy violations (${violations.length}):`);
-  for (const v of violations)
-    console.error(`  ${v.verdict.toUpperCase()}: ${v.key} (${v.license})`);
+  for (const v of violations) {
+    const note = v.allowlisted
+      ? " [allowlist entry ignored: deny cannot be allowlisted]"
+      : "";
+    console.error(
+      `  ${v.verdict.toUpperCase()}: ${v.key} (${v.license})${note}`,
+    );
+  }
   console.error(
-    "GPL/AGPL is not allowed. LGPL or unknown licenses need a reviewed entry in scripts/license-allowlist.json.",
+    "GPL/AGPL, SSPL and non-commercial licenses are never allowed. Other non-permissive or unknown licenses need a reviewed entry in scripts/license-allowlist.json.",
   );
   process.exit(1);
 }
