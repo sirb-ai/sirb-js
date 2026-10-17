@@ -1,16 +1,34 @@
 {
   "name": "@sirb/core",
   "version": "0.0.0",
-  "description": "",
+  "description": "Sirb Agent Spec loading, validation and code-first definitions",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "lint": "tsc -p tsconfig.json --noEmit && prettier --check src test",
-    "test": "vitest run"
+    "lint": "tsc -p tsconfig.json --noEmit && prettier --check src test scripts vitest.config.ts",
+    "test": "vitest run --coverage",
+    "conformance": "tsc -p tsconfig.build.json && node scripts/conformance.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",
   "type": "module",
-  "types": "dist/index.d.ts"
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/conformance.*"
+  ],
+  "dependencies": {
+    "@sirb/spec": "github:sirb-ai/sirb-spec#f0221f7e9bc92852b84639b7c49c9647c7319de2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@vitest/coverage-v8": "^5.0.5"
+  }
 }

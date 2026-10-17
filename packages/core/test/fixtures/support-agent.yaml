@@ -1,0 +1,8 @@
+apiVersion: sirb/v1alpha1
+kind: Agent
+metadata:
+  name: support-agent
+spec:
+  modelBinding: claude-default
+  instructions: You answer billing questions politely.
+  tools: [ticket-lookup]
