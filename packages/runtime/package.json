@@ -14,7 +14,7 @@
   "type": "module",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@opentelemetry/api": "^1.9.1",
     "@sirb/core": "workspace:^",
     "ai": "^7.0.141",
